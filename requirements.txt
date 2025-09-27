@@ -1,0 +1,13 @@
+flask
+pymupdf
+spacy
+sentence-transformers
+torch
+nltk
+scikit-learn
+python-docx
+fuzzywuzzy
+python-levenshtein
+transformers
+numpy
+pandas

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Resume Matcher | Smart Job Analysis</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-robot me-2"></i>
+          AI Resume Matcher
+        </a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section bg-light py-5">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-3">Smart Resume Analysis</h1>
+            <p class="lead mb-4">
+              Get instant insights on how well your resume matches job
+              requirements. Powered by advanced AI and NLP technology.
+            </p>
+            <div class="row text-center">
+              <div class="col-4">
+                <div class="feature-card">
+                  <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
+                  <h6>Match Score</h6>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="feature-card">
+                  <i class="fas fa-lightbulb fa-2x text-warning mb-2"></i>
+                  <h6>Smart Suggestions</h6>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="feature-card">
+                  <i class="fas fa-cogs fa-2x text-success mb-2"></i>
+                  <h6>Skill Analysis</h6>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card shadow-lg border-0">
+              <div class="card-body p-4">
+                <h3 class="card-title mb-4">
+                  <i class="fas fa-upload me-2"></i>
+                  Upload & Analyze
+                </h3>
+
+                <form
+                  method="POST"
+                  enctype="multipart/form-data"
+                  id="analyzeForm"
+                >
+                  <!-- File Upload Section -->
+                  <div class="mb-4">
+                    <label class="form-label fw-bold">Resume Upload</label>
+                    <div class="upload-area" id="uploadArea">
+                      <div class="upload-content">
+                        <i
+                          class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"
+                        ></i>
+                        <p class="mb-2">Drag & drop your resume here</p>
+                        <p class="text-muted small">or click to browse</p>
+                        <p class="text-muted small">Supports PDF, DOCX files</p>
+                      </div>
+                      <input
+                        type="file"
+                        id="resume"
+                        name="resume"
+                        accept=".pdf,.docx"
+                        required
+                        class="file-input"
+                      />
+                    </div>
+                    <div
+                      id="fileInfo"
+                      class="file-info mt-2"
+                      style="display: none"
+                    >
+                      <i class="fas fa-file-alt me-2"></i>
+                      <span id="fileName"></span>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger ms-2"
+                        id="removeFile"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Job Description Section -->
+                  <div class="mb-4">
+                    <label for="job_description" class="form-label fw-bold"
+                      >Job Description</label
+                    >
+                    <textarea
+                      id="job_description"
+                      name="job_description"
+                      class="form-control"
+                      rows="8"
+                      placeholder="Paste the job description here..."
+                      required
+                    ></textarea>
+                    <div class="form-text">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Include requirements, skills, and responsibilities for
+                      better analysis
+                    </div>
+                  </div>
+
+                  <!-- Submit Button -->
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg w-100"
+                    id="submitBtn"
+                  >
+                    <i class="fas fa-search me-2"></i>
+                    Analyze Match
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div
+      class="modal fade"
+      id="loadingModal"
+      tabindex="-1"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5>Analyzing Your Resume</h5>
+            <p class="text-muted mb-0">This may take a few seconds...</p>
+            <div class="progress mt-3">
+              <div
+                class="progress-bar progress-bar-animated"
+                id="progressBar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="container py-5">
+      <h2 class="text-center mb-5">How It Works</h2>
+      <div class="row">
+        <div class="col-md-4 text-center">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <i class="fas fa-file-upload fa-2x text-primary mb-3"></i>
+            <h5>Upload Resume</h5>
+            <p class="text-muted">Upload your resume in PDF or DOCX format</p>
+          </div>
+        </div>
+        <div class="col-md-4 text-center">
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <i class="fas fa-paste fa-2x text-primary mb-3"></i>
+            <h5>Add Job Description</h5>
+            <p class="text-muted">
+              Paste the job description you're interested in
+            </p>
+          </div>
+        </div>
+        <div class="col-md-4 text-center">
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <i class="fas fa-chart-bar fa-2x text-primary mb-3"></i>
+            <h5>Get Analysis</h5>
+            <p class="text-muted">
+              Receive detailed matching results and suggestions
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>

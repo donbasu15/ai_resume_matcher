@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Analysis Results | AI Resume Matcher</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('index') }}">
+          <i class="fas fa-robot me-2"></i>
+          AI Resume Matcher
+        </a>
+        <div class="navbar-nav ms-auto">
+          <a class="nav-link" href="{{ url_for('index') }}">
+            <i class="fas fa-arrow-left me-1"></i>
+            New Analysis
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Results Header -->
+    <div class="bg-light py-4">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1 class="mb-1">
+              <i class="fas fa-chart-line me-2 text-primary"></i>
+              Resume Analysis Results
+            </h1>
+            <p class="text-muted mb-0">
+              Detailed analysis of your resume match
+            </p>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-outline-primary" onclick="window.print()">
+              <i class="fas fa-print me-2"></i>
+              Print Report
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container py-4">
+      <!-- Overall Score Card -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border-0 shadow-lg">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-4">
+                  <div class="score-card text-center">
+                    <h3 class="mb-2">Overall Match Score</h3>
+                    <div class="score-display">
+                      {{ "%.1f"|format(result.overall_match_score) }}%
+                    </div>
+                    <div class="progress progress-custom mb-2">
+                      <div
+                        class="progress-bar bg-white"
+                        style="width: {{ result.overall_match_score }}%"
+                      ></div>
+                    </div>
+                    <p class="mb-0">
+                      {% if result.overall_match_score >= 80 %}
+                      <i class="fas fa-star"></i> Excellent Match {% elif
+                      result.overall_match_score >= 60 %}
+                      <i class="fas fa-thumbs-up"></i> Good Match {% elif
+                      result.overall_match_score >= 40 %}
+                      <i class="fas fa-exclamation-triangle"></i> Fair Match {%
+                      else %} <i class="fas fa-times-circle"></i> Needs
+                      Improvement {% endif %}
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-8">
+                  <h5 class="mb-3">Component Breakdown</h5>
+                  <div class="row">
+                    <div class="col-6 mb-3">
+                      <div
+                        class="d-flex justify-content-between align-items-center mb-2"
+                      >
+                        <span class="fw-bold">Skills Match</span>
+                        <span class="badge bg-primary"
+                          >{{ "%.1f"|format(result.component_scores.skill_match)
+                          }}%</span
+                        >
+                      </div>
+                      <div class="progress progress-custom">
+                        <div
+                          class="progress-bar bg-primary"
+                          style="width: {{ result.component_scores.skill_match }}%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <div
+                        class="d-flex justify-content-between align-items-center mb-2"
+                      >
+                        <span class="fw-bold">Experience Match</span>
+                        <span class="badge bg-success"
+                          >{{
+                          "%.1f"|format(result.component_scores.experience_match)
+                          }}%</span
+                        >
+                      </div>
+                      <div class="progress progress-custom">
+                        <div
+                          class="progress-bar bg-success"
+                          style="width: {{ result.component_scores.experience_match }}%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <div
+                        class="d-flex justify-content-between align-items-center mb-2"
+                      >
+                        <span class="fw-bold">Content Similarity</span>
+                        <span class="badge bg-info"
+                          >{{
+                          "%.1f"|format(result.component_scores.semantic_similarity)
+                          }}%</span
+                        >
+                      </div>
+                      <div class="progress progress-custom">
+                        <div
+                          class="progress-bar bg-info"
+                          style="width: {{ result.component_scores.semantic_similarity }}%"
+                        ></div>
+                      </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                      <div
+                        class="d-flex justify-content-between align-items-center mb-2"
+                      >
+                        <span class="fw-bold">Section Analysis</span>
+                        {% set section_weighted_sum =
+                        (result.component_scores.section_scores.values() |
+                        map(attribute='weighted_score') | sum) %} {% set
+                        section_avg = (section_weighted_sum / 0.15) * 100 %} {%
+                        set section_avg = [section_avg, 100] | min %}
+                        <span class="badge bg-warning"
+                          >{{ "%.1f"|format(section_avg) }}%</span
+                        >
+                      </div>
+                      <div class="progress progress-custom">
+                        <div
+                          class="progress-bar bg-warning"
+                          style="width: {{ section_avg }}%"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Skills Analysis -->
+        <div class="col-lg-6 mb-4">
+          <div class="card border-0 shadow h-100">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0">
+                <i class="fas fa-cogs text-primary me-2"></i>
+                Skills Analysis
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Matching Skills -->
+              <div class="mb-4">
+                <h6 class="text-success">
+                  <i class="fas fa-check-circle me-2"></i>
+                  Matching Skills ({{ result.common_skills|length }})
+                </h6>
+                <div class="skills-container">
+                  {% for skill in result.common_skills %}
+                  <span class="skill-tag match">{{ skill }}</span>
+                  {% endfor %} {% if not result.common_skills %}
+                  <p class="text-muted">No matching skills found.</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Missing Skills -->
+              <div class="mb-4">
+                <h6 class="text-danger">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Missing Skills ({{ result.missing_skills|length }})
+                </h6>
+                <div class="skills-container">
+                  {% for skill in result.missing_skills %}
+                  <span class="skill-tag missing">{{ skill }}</span>
+                  {% endfor %} {% if not result.missing_skills %}
+                  <p class="text-success">
+                    Great! You have all the required skills.
+                  </p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Skills by Category -->
+              <div>
+                <h6 class="mb-3">Skills by Category</h6>
+                {% if result.resume_skills.by_category %} {% for category,
+                skills in result.resume_skills.by_category.items() %}
+                <div class="mb-2">
+                  <small class="text-muted text-uppercase fw-bold"
+                    >{{ category.replace('_', ' ').title() }}</small
+                  >
+                  <div>
+                    {% for skill in skills %}
+                    <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endfor %} {% else %}
+                <p class="text-muted">No categorized skills found.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Improvement Suggestions -->
+        <div class="col-lg-6 mb-4">
+          <div class="card border-0 shadow h-100">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0">
+                <i class="fas fa-lightbulb text-warning me-2"></i>
+                Improvement Suggestions
+              </h5>
+            </div>
+            <div class="card-body">
+              {% if result.improvement_suggestions %} {% for suggestion in
+              result.improvement_suggestions %}
+              <div class="suggestion-card {{ suggestion.priority }}">
+                <div class="d-flex align-items-start">
+                  <div class="me-3">
+                    {% if suggestion.priority == 'high' %}
+                    <i class="fas fa-exclamation-circle text-danger"></i>
+                    {% elif suggestion.priority == 'medium' %}
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    {% else %}
+                    <i class="fas fa-info-circle text-info"></i>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <h6 class="mb-1">{{ suggestion.title }}</h6>
+                    <p class="mb-0 small">{{ suggestion.description }}</p>
+                  </div>
+                </div>
+              </div>
+              {% endfor %} {% else %}
+              <div class="text-center py-4">
+                <i class="fas fa-trophy text-success fa-3x mb-3"></i>
+                <h6 class="text-success">Excellent Resume!</h6>
+                <p class="text-muted">
+                  Your resume matches very well with the job description.
+                </p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Experience Analysis -->
+      {% if result.experience_analysis %}
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border-0 shadow">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0">
+                <i class="fas fa-briefcase text-info me-2"></i>
+                Experience Analysis
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <div class="text-center p-3 border rounded">
+                    <h6 class="text-muted mb-1">Years Match Score</h6>
+                    <h4 class="text-primary mb-0">
+                      {{ result.experience_analysis.years_match_score }}%
+                    </h4>
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="text-center p-3 border rounded">
+                    <h6 class="text-muted mb-1">Level Match Score</h6>
+                    <h4 class="text-success mb-0">
+                      {{ result.experience_analysis.level_match_score }}%
+                    </h4>
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="text-center p-3 border rounded">
+                    <h6 class="text-muted mb-1">Overall Experience</h6>
+                    <h4 class="text-info mb-0">
+                      {{
+                      "%.1f"|format(result.experience_analysis.overall_experience_score)
+                      }}%
+                    </h4>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mt-3">
+                <div class="col-md-6">
+                  <h6>Resume Experience</h6>
+                  <ul class="list-unstyled">
+                    <li>
+                      <strong>Max Years:</strong> {{
+                      result.experience_analysis.resume_experience.max_years }}
+                    </li>
+                    <li>
+                      <strong>Detected Levels:</strong>
+                      {% for level in
+                      result.experience_analysis.resume_experience.levels_detected
+                      %}
+                      <span class="badge bg-secondary"
+                        >{{ level.title() }}</span
+                      >
+                      {% endfor %}
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6>Job Requirements</h6>
+                  <ul class="list-unstyled">
+                    <li>
+                      <strong>Required Years:</strong> {{
+                      result.experience_analysis.jd_requirements.max_years or
+                      'Not specified' }}
+                    </li>
+                    <li>
+                      <strong>Required Levels:</strong>
+                      {% for level in
+                      result.experience_analysis.jd_requirements.levels_detected
+                      %}
+                      <span class="badge bg-primary">{{ level.title() }}</span>
+                      {% endfor %}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Keyword Density -->
+      {% if result.keyword_density %}
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border-0 shadow">
+            <div class="card-header bg-white border-bottom">
+              <h5 class="mb-0">
+                <i class="fas fa-search text-secondary me-2"></i>
+                Keyword Analysis
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-custom">
+                  <thead>
+                    <tr>
+                      <th>Keyword</th>
+                      <th>Occurrences</th>
+                      <th>Density</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for keyword, data in result.keyword_density.items() %}
+                    <tr>
+                      <td><strong>{{ keyword }}</strong></td>
+                      <td>{{ data.count }}</td>
+                      <td>{{ data.density }}%</td>
+                      <td>
+                        {% if data.count > 0 %}
+                        <span class="badge bg-success">Found</span>
+                        {% else %}
+                        <span class="badge bg-danger">Missing</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Action Buttons -->
+      <div class="row">
+        <div class="col-12 text-center">
+          <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-plus me-2"></i>
+            Analyze Another Resume
+          </a>
+          <button
+            class="btn btn-outline-secondary btn-lg"
+            onclick="window.print()"
+          >
+            <i class="fas fa-download me-2"></i>
+            Save as PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="container">
+        <div class="text-center">
+          <p class="mb-0">
+            &copy; 2023 AI Resume Matcher. Powered by advanced NLP and machine
+            learning.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+      // Animate progress bars on page load
+      document.addEventListener('DOMContentLoaded', function() {
+          // Animate overall score
+          const overallScore = {{ result.overall_match_score }};
+          setTimeout(() => {
+              document.querySelector('.score-card .progress-bar').style.width = overallScore + '%';
+          }, 500);
+
+          // Animate component scores
+          setTimeout(() => {
+              document.querySelectorAll('.progress-bar').forEach((bar, index) => {
+                  bar.style.transition = 'width 1s ease-in-out';
+              });
+          }, 1000);
+      });
+    </script>
+  </body>
+</html>
