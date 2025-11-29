@@ -91,7 +91,7 @@ Overall Score = (35% Skills + 25% Experience + 25% Semantic + 15% Sections)
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/donbasu15/ai_resume_matcher
 cd resume_job_matcher
 
 # Run the setup script
